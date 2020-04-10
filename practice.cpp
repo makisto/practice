@@ -1,33 +1,35 @@
 #include <iostream>
-#include <stdlib.h>
-#include <ctime>
 
 using namespace std;
 	
-void DFS(int ** graph, int n, bool * visited, int ccNum, int * cc, int st)
+void DFS(int ** graph, int n, bool * visited, int comps_col, int * cc, int ver)
 {
-	visited[st]= true;
-	cc[st] = ccNum;
-	for (int r = 0; r < n; r++)
+	visited[ver] = true;
+	cc[ver] = comps_col;
+	for (int i = 0; i < n; i++)
 	{
-		if ((graph[st][r]) && (!visited[r]))
+		if ((graph[ver][i]) && (!visited[i]))
 		{
-			DFS(graph, n, visited, ccNum, cc, r);		
+			DFS(graph, n, visited, comps_col, cc, i);		
 		}
 	}
 }
 
-void solve(int ** graph, int n, int * cc, bool * visited, int ccNum)
+void solve(int ** graph, int n, int * cc, bool * visited, int comps_col)
 {
+	for(int i = 0; i < n; i++)
+	{
+		visited[i] = false;		
+	}
 	for(int i = 0; i < n; i++)
 	{
 		if(!visited[i])
 		{
-			ccNum++;
-			DFS(graph, n, visited, ccNum, cc, i);	
+			comps_col++;
+			DFS(graph, n, visited, comps_col, cc, i);	
 		}	
 	}
-	cout << "Количество компонент связности - " << ccNum << endl;
+	cout << "Количество компонент связности - " << comps_col << endl;
 	for(int i = 0; i < n; i++)
 	{
 		cout << i + 1 << " вершина - " << cc[i]  << " компонента " << endl;
@@ -40,10 +42,6 @@ int ** fillMatrix(int n)
 	for(int i = 0; i < n; i++)
 	{
 		graph[i] = new int[n];
-	}
-	
-	for(int i = 0; i < n; i++)
-	{
 		for (int j = 0; j < n; j++)
 		{
 			graph[i][j] = 0;	
@@ -52,12 +50,11 @@ int ** fillMatrix(int n)
 	return graph;
 }
 
-void printMatrix(int ** graph, bool * visited, int n)
+void printMatrix(int ** graph, int n)
 {
 	cout << "Матрица смежности графа: " <<endl;
 	for (int i = 0; i < n; i++)
 	{
-		visited[i] = false;
 		for (int j = 0; j < n; j++)
 		{
 			cout << graph[i][j] << " ";
@@ -66,119 +63,77 @@ void printMatrix(int ** graph, bool * visited, int n)
 	}	
 }
 
-int countSteps(int n)
+void fixmatrix(int n, int ** graph)
 {
-	int step = 0;
-	
-	for(int i = n - 1; i >= 1; i--)
-	{
-		step += i;
-	}
+	int z1, z2;
 
-	return step;
+	m3:cout << "Строка - ";
+	cin >> z1;
+	cout << "Столбец - ";
+	cin >> z2;
+	if((z1 < 1) || (z1 > n) || (z2 < 1) || (z2 > n))
+	{
+		cout << "Введите данные заново" << endl;
+		goto m3;
+	}
+	if(z1 == z2)
+	{
+		cout << "Петли недопустимы!Введите данные заново" << endl;
+		goto m3;
+	}
+		
+	z1--;
+	z2--;
+		
+	graph[z1][z2] = 1 - graph[z1][z2];
+	graph[z2][z1] = graph[z1][z2];	
 }
 
 int main()
-{
-	srand(time(NULL));
-	
-	int ccNum = 0;
+{	
+	int comps_col = 0;
 	int ** graph;
-	bool ** vis;
 	bool * visited;
 	int * cc;
-	int n;
-	int g;
-	int z;
+	int n, g, z;
 		 		
 	m:cout << "Количество вершин - ";
 	cin >> n;
-	if((n <= 1) || (n > 1000))
+	if((n <= 1) || (n > 50))
 	{
 		cout << "Неверные данные!" << endl;
 		goto m;
 	}
-	
-	vis = new bool*[n];
-	for(int i = 0; i < n; i++)
-	{
-		vis[i] = new bool[n];
-		for(int j = 0; j < n; j++)
-		{
-			vis[i][j] = false;	
-		}	
-	}		
-	
+						
 	visited = new bool[n];
 	cc = new int[n];
 	
 	graph = fillMatrix(n);
-	
- 	m1:printMatrix(graph, visited, n);
-	solve(graph, n, cc, visited, ccNum);
-	
-	cout << "Изменить количество вершин?" << endl;
-	cin >> g;
-	switch(g)
-	{
-		case 0:
-			system("cls");
-			goto m;
-		default:
-			break;
-	}
-	
-    int k = 0;
-	int z1, z2;
-	m2:cout << "Кол - во элементов?" << endl;
-	cin >> z;
-	if((z < 0) || (z > countSteps(n)))
-	{
-		cout << "Неверные данные" << endl;
-		goto m2;
-	}
-	
-	while(k < z)
-	{
-		m3:cout << "Строка - ";
-		cin >> z1;
-		cout << "Столбец - ";
-		cin >> z2;
-		if((z1 < 1) || (z1 > n) || (z2 < 1) || (z2 > n))
-		{
-			cout << "Введите данные заново" << endl;
-			goto m3;
-		}
-		if(z1 == z2)
-		{
-			cout << "Петли недопустимы!Введите данные заново" << endl;
-			goto m3;
-		}
-		
-		z1--;
-		z2--;
-		if(vis[z1][z2] == true)
-		{
-			cout << "Эта вершина уже была изменена!" << endl;
-			goto m3;
-		}
-		
-		graph[z1][z2] = 1 - graph[z1][z2];
-		graph[z2][z1] = graph[z1][z2];	
-		vis[z1][z2] = vis[z2][z1] = true;
-		k++;		
-	}
-	
-	for(int i = 0; i < n; i++)
-	{
-		for(int j = 0; j < n; j++)
-		{
-			vis[i][j] = false;	
+
+ 	while(g != 4)
+ 	{
+ 		system("CLS");
+ 		printMatrix(graph, n);
+ 		cout << "1 - Изменение количества вершин" << endl;
+ 		cout << "2 - Вывод компонент связности" << endl;
+ 		cout << "3 - Изменение элементов матрицы" << endl;
+ 		cout << "4 - Выход" << endl;
+ 		cin >> g;
+ 	 	switch(g)
+	 	{
+	 	    case 1:
+				goto m;
+			case 2:
+				solve(graph, n, cc, visited, comps_col);
+				system("PAUSE");
+				break;
+			case 3:
+				fixmatrix(n, graph);
+				break;
+			default:
+				break;	
 		}	
 	}
-	
-	system("pause");
-	system("cls");
-	goto m1;
+		
 	return 0;
 }
